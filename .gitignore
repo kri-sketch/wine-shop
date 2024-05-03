@@ -1,0 +1,27 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore environment files
+.env
+
+# Ignore npm debug log
+npm-debug.log
+
+# Ignore yarn lockfile
+yarn.lock
+
+# Ignore editor specific files
+.vscode/
+.idea/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore build artifacts
+/build
+
+# Ignore development dependencies (for frontend)
+/frontend/node_modules/
+
+# Ignore development dependencies (for backend)
+/backend/node_modules/
