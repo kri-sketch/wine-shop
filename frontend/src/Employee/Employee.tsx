@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Dashboard = () => {
+const Employee = () => {
   const classes = useStyles();
   const [scanResult, setScanResult] = useState(null);
   const [openScanner, setOpenScanner] = useState(false);
@@ -106,4 +106,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Employee;
