@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { TextField, Button, Typography, Container } from "@material-ui/core";
+import { useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -18,10 +19,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const LoginForm: React.FC = () => {
+const Login: React.FC = () => {
   const classes = useStyles();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    // Perform login logic here
+    // Once login is successful, navigate to the dashboard route
+    navigate("/dashboard");
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +37,14 @@ const LoginForm: React.FC = () => {
     console.log("Username:", username);
     console.log("Password:", password);
     // Add authentication logic here, e.g., call an API endpoint
+    // For demonstration purposes, let's consider a dummy username and password
+    if (username === "krishna" && password === "password") {
+      // Navigate to the dashboard if the credentials are correct
+      handleLogin();
+    } else {
+      // Show an error message or handle invalid credentials
+      console.log("Invalid username or password");
+    }
   };
 
   return (
@@ -79,4 +95,4 @@ const LoginForm: React.FC = () => {
   );
 };
 
-export default LoginForm;
+export default Login;
