@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   Button,
@@ -11,7 +11,8 @@ import {
   Typography,
 } from "@material-ui/core";
 import CameraAltIcon from "@material-ui/icons/CameraAlt";
-import QrScanner from "react-qr-scanner";
+import Webcam from "react-webcam";
+import { BrowserMultiFormatReader } from "@zxing/library";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,36 +27,62 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "center",
   },
-  camera: {
-    maxWidth: "100%",
-    maxHeight: "400px",
+  webcam: {
+    width: "100%", // Ensure it's visible and properly sized on mobile
+    height: "auto", // Adjust based on your needs
   },
 }));
 
+const videoConstraints = {
+  width: { ideal: 4096 },
+  height: { ideal: 2160 },
+  facingMode: "environment", // Use the rear-facing camera on mobile
+};
+
 const Employee = () => {
   const classes = useStyles();
-  const [scanResult, setScanResult] = useState(null);
-  const [openScanner, setOpenScanner] = useState(false);
+  // Declare webcamRef with a more specific type to recognize getScreenshot
+  const webcamRef = useRef<Webcam>(null);
+  const [scanResult, setScanResult] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  const handleScan = (data) => {
-    if (data) {
-      setScanResult(data);
-      setOpenDialog(true);
-      setOpenScanner(false); // Hide scanner after scanning
-    }
-  };
-
-  const handleError = (err) => {
-    console.error(err);
-  };
-
-  const handleToggleScanner = () => {
-    setOpenScanner(!openScanner);
-  };
+  // Use useMemo to initialize barcodeReader once and only reinitialize if needed
+  const barcodeReader = useMemo(() => new BrowserMultiFormatReader(), []);
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setIsCameraOpen(false);
+  };
+
+  const handleSell = () => {
+    console.log("Handle sell logic");
+    handleCloseDialog();
+  };
+
+  const handleStock = () => {
+    console.log("Handle stock logic");
+    handleCloseDialog();
+  };
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (imageSrc) {
+      barcodeReader
+        .decodeFromImageUrl(imageSrc)
+        .then((result) => {
+          setScanResult(result.getText()); // Ensuring proper method usage
+          setOpenDialog(true);
+          setIsCameraOpen(false); // Close camera after scan
+        })
+        .catch((err) => {
+          console.log("Error scanning barcode: ", err);
+        });
+    }
+  }, [barcodeReader]);
+
+  const handleScan = () => {
+    setIsCameraOpen(true); // Open camera view
   };
 
   return (
@@ -63,41 +90,36 @@ const Employee = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      <IconButton onClick={handleToggleScanner} color="primary">
+      <IconButton onClick={handleScan} color="primary">
         <CameraAltIcon />
       </IconButton>
-      {openScanner && (
+      {isCameraOpen && (
         <div className={classes.cameraContainer}>
-          <QrScanner
-            delay={300}
-            style={{ width: "100%", height: "400px" }} // Ensure camera takes full container width and a fixed height
-            onError={handleError}
-            onScan={handleScan}
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            videoConstraints={videoConstraints}
+            className={classes.webcam}
+            onUserMediaError={(error) =>
+              console.log("Webcam access error: ", error)
+            }
           />
+          <Button onClick={capture} color="primary">
+            Scan Barcode
+          </Button>
         </div>
       )}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Scan Result</DialogTitle>
         <DialogContent>
-          <DialogContentText>Scanned QR code: {scanResult}</DialogContentText>
+          <DialogContentText>Scanned barcode: {scanResult}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => {
-              console.log("Handle stock logic");
-              handleCloseDialog();
-            }}
-            color="primary"
-          >
+          <Button onClick={handleStock} color="primary">
             Stock
           </Button>
-          <Button
-            onClick={() => {
-              console.log("Handle sell logic");
-              handleCloseDialog();
-            }}
-            color="primary"
-          >
+          <Button onClick={handleSell} color="primary">
             Sell
           </Button>
         </DialogActions>
